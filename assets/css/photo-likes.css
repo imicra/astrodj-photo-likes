@@ -1,0 +1,115 @@
+.photo-like{
+    position:absolute;
+    top:20px;
+    right:20px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    background:transparent;
+
+    border:none;
+
+    padding:0;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    user-select:none;
+
+    z-index:100;
+
+}
+
+@media screen and (min-width: 576px) {
+
+    .photo-like{
+      top:15px;
+      right:60px;
+    }
+}
+
+.photo-like.loading{
+
+    pointer-events:none;
+
+    opacity:.6;
+
+}
+
+@keyframes like-shadow {
+    0% { opacity: 0; transform: scale(2); }
+    30% { opacity: 1; transform: scale(3);}
+    100% { opacity: 0; transform: scale(5);}
+}
+
+.photo-like.likes-animation .heart:before {
+    animation: like-shadow .4s ease-in-out both;
+    color: rgba(211, 79, 55, 1);
+    content: '❤';
+    font: normal normal normal .875rem/1 'Material-Design-Iconic-Font';
+    left: 4px;
+    opacity: 0;
+    position: absolute;
+    text-shadow: -.2px -.2px .2px rgba(211, 79, 55, .5), .2px -.2px .2px rgba(211, 79, 55, .5), -.2px .2px .2px rgba(211, 79, 55, .5), .2px .2px .2px rgba(211, 79, 55, .5);
+    top: 8px;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+.photo-like .heart{
+    position: relative;
+
+    font-size:22px;
+
+    transition:.25s;
+
+}
+
+.photo-like .count{
+    position: absolute;
+    top: 0;
+    right: -5px;
+    border-radius: 50%;
+    background-color: #ff3355;
+    padding: 0.2em 0.5em;
+
+    font-size: .65rem;
+    font-weight:bold;
+    color:#ffffff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width: 16px;
+    height: 16px;
+
+    text-align:center;
+
+    opacity:0;
+    visibility: hidden;
+
+    transform:translate(50%, -50%);
+}
+
+@media screen and (min-width: 576px) {
+  .photo-like .count {
+    font-size: .85rem;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.photo-like .count.visible {
+    opacity:1;
+    visibility: visible;
+}
+
+/* .photo-like.liked .heart{
+
+    color:#ffffff;
+
+    transform:scale(1.25);
+
+} */
