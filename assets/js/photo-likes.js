@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    document.addEventListener('click', async (event) => {
+    const container = document.querySelector('.site-main');
+
+    container.addEventListener('click', async (event) => {
 
         const button = event.target.closest('.photo-like');
 

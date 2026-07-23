@@ -8,7 +8,6 @@ class Loader
 {
     public function __construct()
     {
-        add_action('wp_enqueue_scripts', [$this, 'enqueue']);
         add_action('wp', [$this, 'boot']);
 
         new Ajax();
@@ -22,6 +21,7 @@ class Loader
         }
 
         // подключаем JS/CSS
+        add_action('wp_enqueue_scripts', [$this, 'enqueue']);
     }
 
     public function enqueue()
