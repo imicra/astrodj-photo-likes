@@ -26,9 +26,9 @@ class Button
      */
     public static function render(int $photo_id): string
     {
-        $likes = Ajax::countLikes($photo_id);
+        $likes = Repository::likes($photo_id);
 
-        $liked = Ajax::liked($photo_id);
+        $liked = Repository::liked($photo_id);
 
         ob_start();
         ?>

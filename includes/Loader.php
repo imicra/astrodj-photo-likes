@@ -9,9 +9,19 @@ class Loader
     public function __construct()
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueue']);
+        add_action('wp', [$this, 'boot']);
 
         new Ajax();
         new Button();
+    }
+
+    public function boot()
+    {
+        if (!is_singular(Config::POST_TYPES) && !is_post_type_archive(Config::POST_TYPES)) {
+            return;
+        }
+
+        // подключаем JS/CSS
     }
 
     public function enqueue()

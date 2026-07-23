@@ -1,69 +1,72 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    document.querySelectorAll('.photo-like').forEach(button => {
+    document.addEventListener('click', async (event) => {
 
-        button.addEventListener('click', async function () {
+        const button = event.target.closest('.photo-like');
 
-            button.classList.add('likes-animation');
+        if (!button) {
+            return;
+        }
 
-            setTimeout(function(){
-                button.classList.remove('likes-animation');
-            }, 300);
+        button.classList.add('likes-animation');
 
-            // Уже поставил лайк
-            if (button.classList.contains('liked'))
-                return;
+        setTimeout(() => {
+            button.classList.remove('likes-animation');
+        }, 300);
 
-            // Защита от двойного клика
-            if (button.classList.contains('loading'))
-                return;
+        // Уже лайкал
+        if (button.classList.contains('liked')) {
+            return;
+        }
 
-            button.classList.add('loading');
+        // Защита от двойного клика
+        if (button.classList.contains('loading')) {
+            return;
+        }
 
-            const form = new FormData();
+        button.classList.add('loading');
 
-            form.append('action', 'photo_like');
-            form.append('photo_id', button.dataset.photo);
-            form.append('nonce', PhotoLikes.nonce);
+        const form = new FormData();
 
-            try {
+        form.append('action', 'photo_like');
+        form.append('photo_id', button.dataset.photo);
+        form.append('nonce', PhotoLikes.nonce);
 
-                const response = await fetch(PhotoLikes.ajax, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    body: form
-                });
+        try {
 
-                const json = await response.json();
+            const response = await fetch(PhotoLikes.ajax, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: form
+            });
 
-                button.classList.remove('loading');
+            const json = await response.json();
 
-                if (!json.success) {
+            button.classList.remove('loading');
 
-                    // если уже голосовал
-                    if (json.data.message === 'already') {
+            if (!json.success) {
 
-                        button.classList.add('liked');
-                    }
-
-                    return;
+                if (json.data?.message === 'already') {
+                    button.classList.add('liked');
                 }
 
-                button.classList.add('liked');
-
-                button.querySelector('.count').textContent = json.data.likes;
-                button.querySelector('.count').classList.add('visible');
-
-            }
-            catch (e) {
-
-                button.classList.remove('loading');
-
-                console.error(e);
-
+                return;
             }
 
-        });
+            button.classList.add('liked');
+
+            const count = button.querySelector('.count');
+
+            count.textContent = json.data.likes;
+            count.classList.add('visible');
+
+        } catch (e) {
+
+            button.classList.remove('loading');
+
+            console.error(e);
+
+        }
 
     });
 

@@ -32,25 +32,14 @@ class Ajax
             ]);
         }
 
-        $visitor = Visitor::hash();
-
         /*
          * UNIQUE(photo_id, visitor_hash)
          * гарантирует, что два одинаковых лайка невозможны.
          */
 
-        $insert = $wpdb->insert(
-            $this->table,
-            [
-                'photo_id'     => $photo_id,
-                'visitor_hash' => $visitor,
-                'created_at'   => current_time('mysql')
-            ],
-            [
-                '%d',
-                '%s',
-                '%s'
-            ]
+        $insert = Database::addLike(
+            $photo_id,
+            Visitor::hash()
         );
 
         if ($insert === false) {
