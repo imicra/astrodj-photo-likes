@@ -26,22 +26,16 @@ class Button
      */
     public static function render(int $photo_id): string
     {
-        $likes = Repository::likes($photo_id);
-
-        $liked = Repository::liked($photo_id);
-
         ob_start();
         ?>
 
         <button
-            class="photo-like <?php echo $liked ? 'liked' : ''; ?>"
+            class="photo-like"
             data-photo="<?php echo esc_attr($photo_id); ?>">
 
             <span class="heart">❤</span>
 
-            <span class="count <?php echo $likes > 0 ? 'visible' : ''; ?>">
-                <?php echo esc_html($likes); ?>
-            </span>
+            <span class="count"></span>
 
         </button>
 

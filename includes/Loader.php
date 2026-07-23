@@ -43,10 +43,10 @@ class Loader
 
         wp_localize_script(
             'photo-likes',
-            'PhotoLikes',
+            'PhotoLikesData',
             [
                 'ajax' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('photo_likes')
+                'nonce' => wp_create_nonce('photo_likes'),
             ]
         );
     }

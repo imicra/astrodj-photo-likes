@@ -26,11 +26,11 @@ class Install
 
             created_at DATETIME NOT NULL,
 
-            PRIMARY KEY(id),
+            PRIMARY KEY (id),
 
-            UNIQUE KEY photo_visitor(photo_id, visitor_hash),
+            UNIQUE KEY photo_visitor (photo_id, visitor_hash),
 
-            KEY photo(photo_id)
+            KEY photo (photo_id)
 
         ) {$charset};";
 

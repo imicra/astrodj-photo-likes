@@ -16,6 +16,9 @@ class Ajax
 
         add_action('wp_ajax_photo_like', [$this, 'like']);
         add_action('wp_ajax_nopriv_photo_like', [$this, 'like']);
+
+        add_action('wp_ajax_photo_likes_state', [$this,'state']);
+        add_action('wp_ajax_nopriv_photo_likes_state', [$this,'state']);
     }
 
     public function like()
@@ -53,6 +56,27 @@ class Ajax
         wp_send_json_success([
             'likes' => self::countLikes($photo_id)
         ]);
+    }
+
+    public function state()
+    {
+        check_ajax_referer(
+            'photo_likes',
+            'nonce'
+        );
+
+        $ids = $_POST['ids'] ?? [];
+
+        $ids = array_map(
+            'absint',
+            (array)$ids
+        );
+
+        wp_send_json_success(
+
+            Repository::getState($ids)
+
+        );
     }
 
     public static function countLikes(int $photo_id): int

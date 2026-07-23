@@ -131,4 +131,30 @@ class Repository
         );
     }
 
+    public static function getState(array $ids): array
+    {
+        $likes = Database::getLikes($ids);
+
+        $liked = Database::getLiked(
+            $ids,
+            Visitor::hash()
+        );
+
+        $result = [];
+
+        foreach ($ids as $id) {
+
+            $result[$id] = [
+
+                'likes' => $likes[$id] ?? 0,
+
+                'liked' => isset($liked[$id])
+
+            ];
+
+        }
+
+        return $result;
+    }
+
 }
