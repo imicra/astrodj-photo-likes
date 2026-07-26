@@ -2,9 +2,49 @@ class PhotoLikes {
 
     constructor() {
 
-        this.bindEvents();
+        this.loadingState = false;
+        this.pendingReload = false;
 
+        this.bindEvents();
         this.loadState();
+
+    }
+
+    /**
+     * Универсальный AJAX-запрос
+     */
+    async request(action, data = {}) {
+
+        const form = new FormData();
+
+        form.append('action', action);
+        form.append('nonce', PhotoLikesData.nonce);
+
+        Object.entries(data).forEach(([key, value]) => {
+
+            if (Array.isArray(value)) {
+
+                value.forEach(item => {
+                    form.append(`${key}[]`, item);
+                });
+
+            } else {
+
+                form.append(key, value);
+
+            }
+
+        });
+
+        const response = await fetch(PhotoLikesData.ajax, {
+
+            method: 'POST',
+            credentials: 'same-origin',
+            body: form
+
+        });
+
+        return await response.json();
 
     }
 
@@ -13,7 +53,9 @@ class PhotoLikes {
      */
     bindEvents() {
 
-        document.addEventListener('click', (event) => {
+        const container = document.querySelector('.site-main');
+
+        container.addEventListener('click', (event) => {
 
             const button = event.target.closest('.photo-like');
 
@@ -28,119 +70,121 @@ class PhotoLikes {
     }
 
     /**
-     * Все ещё не инициализированные кнопки
+     * Получить кнопки, которые еще не инициализированы
      */
     getButtons() {
-        return document.querySelectorAll('.photo-like:not([data-loaded])');
+
+        return document.querySelectorAll('.photo-like:not([data-state])');
+
     }
 
     /**
-     * Получение состояния кнопок
+     * Загрузить состояние кнопок
      */
     async loadState() {
 
-        const buttons = this.getButtons();
+        if (this.loadingState) {
+
+            this.pendingReload = true;
+            return;
+
+        }
+
+        const buttons = [...this.getButtons()];
 
         if (!buttons.length) {
             return;
         }
 
-        const ids = [];
+        this.loadingState = true;
 
         buttons.forEach(button => {
-
-            ids.push(button.dataset.photo);
-
+            button.dataset.state = 'loading';
         });
 
-        const form = new FormData();
-
-        form.append('action', 'photo_likes_state');
-        form.append('nonce', PhotoLikesData.nonce);
-
-        ids.forEach(id => {
-
-            form.append('ids[]', id);
-
-        });
+        const ids = buttons.map(button => button.dataset.photo);
 
         try {
 
-            const response = await fetch(PhotoLikesData.ajax, {
+            const json = await this.request(
+                'photo_likes_state',
+                {
+                    ids: ids
+                }
+            );
 
-                method: 'POST',
+            if (json.success) {
 
-                credentials: 'same-origin',
+                buttons.forEach(button => {
 
-                body: form
+                    const id = button.dataset.photo;
 
-            });
+                    const state = json.data[id];
 
-            const json = await response.json();
+                    if (state) {
 
-            if (!json.success) {
-                return;
+                        this.updateButton(
+                            button,
+                            state
+                        );
+
+                    }
+
+                    button.dataset.state = 'loaded';
+
+                });
+
+            } else {
+
+                buttons.forEach(button => {
+                    button.removeAttribute('data-state');
+                });
+
             }
 
+        }
+        catch (e) {
+
             buttons.forEach(button => {
-
-                const id = button.dataset.photo;
-
-                if (json.data[id]) {
-
-                    this.updateButton(
-                        button,
-                        json.data[id]
-                    );
-
-                } else {
-
-                    button.setAttribute('data-loaded', '');
-
-                }
-
+                button.removeAttribute('data-state');
             });
+
+            console.error(e);
 
         }
 
-        catch (e) {
+        this.loadingState = false;
 
-            console.error(e);
+        if (this.pendingReload) {
+
+            this.pendingReload = false;
+
+            this.loadState();
 
         }
 
     }
 
     /**
-     * Обновление DOM
+     * Обновить кнопку
      */
     updateButton(button, state) {
 
         const count = button.querySelector('.count');
 
-        count.textContent = state.likes;
+        const likes = parseInt(state.likes, 10) || 0;
 
-        if (state.likes > 0) {
+        count.textContent = likes;
 
-            count.classList.add('visible');
+        count.classList.toggle(
+            'visible',
+            likes > 0
+        );
 
-        } else {
-
-            count.classList.remove('visible');
-
-        }
-
-        if (state.liked) {
-
-            button.classList.add('liked');
-
-        } else {
-
-            button.classList.remove('liked');
-
-        }
-
-        button.setAttribute('data-loaded', '');
+        button.classList.toggle(
+            'liked',
+            state.liked
+        );
 
     }
 
@@ -152,9 +196,7 @@ class PhotoLikes {
         button.classList.add('likes-animation');
 
         setTimeout(() => {
-
             button.classList.remove('likes-animation');
-
         }, 300);
 
         if (button.classList.contains('liked')) {
@@ -167,25 +209,14 @@ class PhotoLikes {
 
         button.classList.add('loading');
 
-        const form = new FormData();
-
-        form.append('action', 'photo_like');
-        form.append('photo_id', button.dataset.photo);
-        form.append('nonce', PhotoLikesData.nonce);
-
         try {
 
-            const response = await fetch(PhotoLikesData.ajax, {
-
-                method: 'POST',
-
-                credentials: 'same-origin',
-
-                body: form
-
-            });
-
-            const json = await response.json();
+            const json = await this.request(
+                'photo_like',
+                {
+                    photo_id: button.dataset.photo
+                }
+            );
 
             button.classList.remove('loading');
 
@@ -193,15 +224,7 @@ class PhotoLikes {
 
                 if (json.data?.message === 'already') {
 
-                    this.updateButton(button, {
-
-                        likes: parseInt(
-                            button.querySelector('.count').textContent || 0
-                        ),
-
-                        liked: true
-
-                    });
+                    button.classList.add('liked');
 
                 }
 
@@ -212,13 +235,11 @@ class PhotoLikes {
             this.updateButton(button, {
 
                 likes: json.data.likes,
-
                 liked: true
 
             });
 
         }
-
         catch (e) {
 
             button.classList.remove('loading');
