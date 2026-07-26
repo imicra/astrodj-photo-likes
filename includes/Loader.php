@@ -9,9 +9,14 @@ class Loader
     public function __construct()
     {
         add_action('wp', [$this, 'boot']);
+        add_action('admin_enqueue_scripts', [$this, 'adminEnqueue']);
 
         new Ajax();
         new Button();
+
+        if (is_admin()) {
+            new \PhotoLikes\Admin\Menu();
+        }
     }
 
     public function boot()
@@ -49,6 +54,16 @@ class Loader
                 'nonce' => wp_create_nonce('photo_likes'),
                 'container' => '.site-main',
             ]
+        );
+    }
+
+    public function adminEnqueue(): void
+    {
+        wp_enqueue_style(
+            'photo-likes-admin',
+            PHOTO_LIKES_URL . 'assets/css/admin.css',
+            [],
+            PHOTO_LIKES_VERSION
         );
     }
 }

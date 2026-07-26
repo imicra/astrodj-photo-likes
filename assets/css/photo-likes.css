@@ -3,7 +3,6 @@
     top:20px;
     right:20px;
     display:inline-flex;
-    align-items:center;
     gap:8px;
 
     background:transparent;
@@ -11,6 +10,8 @@
     border:none;
 
     padding:0;
+    width: 30px;
+    height: 30px;
 
     cursor:pointer;
 
@@ -38,6 +39,17 @@
 
 }
 
+.photo-like .heart{
+    position: relative;
+}
+
+.photo-like .heart svg {
+    fill: #ffffff;
+    width: 22px;
+    height: 22px;
+    transition:.25s;
+}
+
 @keyframes like-shadow {
     0% { opacity: 0; transform: scale(2); }
     30% { opacity: 1; transform: scale(3);}
@@ -46,7 +58,7 @@
 
 .photo-like.likes-animation .heart:before {
     animation: like-shadow .4s ease-in-out both;
-    color: rgba(211, 79, 55, 1);
+    color: rgba(255, 51, 85, 1);
     content: '❤';
     font: normal normal normal .875rem/1 'Material-Design-Iconic-Font';
     left: 4px;
@@ -58,19 +70,10 @@
     z-index: -1;
 }
 
-.photo-like .heart{
-    position: relative;
-
-    font-size:22px;
-
-    transition:.25s;
-
-}
-
 .photo-like .count{
     position: absolute;
     top: 0;
-    right: -5px;
+    right: -3px;
     border-radius: 50%;
     background-color: #ff3355;
     padding: 0.2em 0.5em;

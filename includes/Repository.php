@@ -157,4 +157,47 @@ class Repository
         return $result;
     }
 
+    /**
+     * Общая статистика
+     */
+    public static function getSummary(): object
+    {
+        return Database::getSummary();
+    }
+
+    /**
+     * ТОП фотографий
+     */
+    public static function getTopPhotos(int $limit = 5): array
+    {
+        return Database::getTopPhotos($limit);
+    }
+
+    /**
+     * Статистика для таблицы в админке
+     */
+    public static function getStatistics(
+        int $perPage = 20,
+        int $offset = 0,
+        string $orderby = 'last_like',
+        string $order = 'DESC'
+    ): array {
+
+        return Database::getStatistics(
+            $perPage,
+            $offset,
+            $orderby,
+            $order
+        );
+
+    }
+
+    /**
+     * Количество фотографий с лайками
+     */
+    public static function countStatistics(): int
+    {
+        return Database::countStatistics();
+    }
+
 }

@@ -124,7 +124,7 @@ class Database
 
                 'visitor_hash'=>$visitor,
 
-                'created_at'=>current_time('mysql')
+                'created_at' => current_time('mysql', true)
 
             ],
 
@@ -139,6 +139,229 @@ class Database
             ]
 
         );
+    }
+
+    /**
+     * Статистика лайков
+     *
+     * @return array<object>
+     */
+    public static function getStatistics(
+        int $perPage = 20,
+        int $offset = 0,
+        string $orderby = 'last_like',
+        string $order = 'DESC'
+    ): array {
+
+        global $wpdb;
+
+        $allowedOrderBy = [
+            'title'     => 'p.post_title',
+            'likes'     => 'likes',
+            'last_like' => 'last_like',
+        ];
+
+        $orderby = $allowedOrderBy[$orderby] ?? 'last_like';
+
+        $order = strtoupper($order);
+
+        if (!in_array($order, ['ASC', 'DESC'], true)) {
+            $order = 'DESC';
+        }
+
+        $postTypes = Config::POST_TYPES;
+
+        $placeholders = implode(
+            ',',
+            array_fill(0, count($postTypes), '%s')
+        );
+
+        $sql = $wpdb->prepare(
+            "
+            SELECT
+
+                p.ID,
+                p.post_title,
+                p.post_type,
+
+                COUNT(l.id) AS likes,
+
+                MAX(l.created_at) AS last_like
+
+            FROM " . self::table() . " l
+
+            INNER JOIN {$wpdb->posts} p
+
+                ON p.ID = l.photo_id
+
+            WHERE
+
+                p.post_type IN ($placeholders)
+
+            GROUP BY p.ID
+
+            ORDER BY {$orderby} {$order}
+
+            LIMIT %d OFFSET %d
+            ",
+            ...array_merge(
+                $postTypes,
+                [
+                    $perPage,
+                    $offset
+                ]
+            )
+        );
+
+        return $wpdb->get_results($sql);
+
+    }
+
+    /**
+     * Количество фотографий с лайками
+     */
+    public static function countStatistics(): int
+    {
+        global $wpdb;
+
+        $postTypes = Config::POST_TYPES;
+
+        $placeholders = implode(
+            ',',
+            array_fill(0, count($postTypes), '%s')
+        );
+
+        $sql = $wpdb->prepare(
+            "
+            SELECT COUNT(*)
+
+            FROM (
+
+                SELECT p.ID
+
+                FROM " . self::table() . " l
+
+                INNER JOIN {$wpdb->posts} p
+
+                    ON p.ID = l.photo_id
+
+                WHERE
+
+                    p.post_type IN ($placeholders)
+
+                GROUP BY p.ID
+
+            ) stats
+            ",
+            ...$postTypes
+        );
+
+        return (int)$wpdb->get_var($sql);
+    }
+
+    /**
+     * Общая статистика
+     */
+    public static function getSummary(): object
+    {
+        global $wpdb;
+
+        $postTypes = Config::POST_TYPES;
+
+        $placeholders = implode(
+            ',',
+            array_fill(0, count($postTypes), '%s')
+        );
+
+        $sql = $wpdb->prepare(
+            "
+            SELECT
+
+                COUNT(DISTINCT l.photo_id) AS photos,
+
+                COUNT(l.id) AS likes,
+
+                MAX(l.created_at) AS last_like
+
+            FROM " . self::table() . " l
+
+            INNER JOIN {$wpdb->posts} p
+
+                ON p.ID = l.photo_id
+
+            WHERE p.post_type IN ($placeholders)
+            ",
+            ...$postTypes
+        );
+
+        $summary = $wpdb->get_row($sql);
+
+        if (!$summary) {
+
+            $summary = (object) [
+                'photos'    => 0,
+                'likes'     => 0,
+                'last_like' => null,
+            ];
+
+        }
+
+        $summary->average = $summary->photos > 0
+            ? round($summary->likes / $summary->photos, 1)
+            : 0;
+
+        return $summary;
+    }
+
+    /**
+     * Самые популярные фотографии
+     *
+     * @return array<object>
+     */
+    public static function getTopPhotos(int $limit = 5): array
+    {
+        global $wpdb;
+
+        $postTypes = Config::POST_TYPES;
+
+        $placeholders = implode(
+            ',',
+            array_fill(0, count($postTypes), '%s')
+        );
+
+        $sql = $wpdb->prepare(
+            "
+            SELECT
+
+                p.ID,
+                p.post_title,
+                p.post_type,
+
+                COUNT(l.id) AS likes,
+
+                MAX(l.created_at) AS last_like
+
+            FROM " . self::table() . " l
+
+            INNER JOIN {$wpdb->posts} p
+
+                ON p.ID = l.photo_id
+
+            WHERE p.post_type IN ($placeholders)
+
+            GROUP BY p.ID
+
+            ORDER BY likes DESC, last_like DESC
+
+            LIMIT %d
+            ",
+            ...array_merge(
+                $postTypes,
+                [$limit]
+            )
+        );
+
+        return $wpdb->get_results($sql);
     }
 
 }
