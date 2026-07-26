@@ -47,6 +47,7 @@ class Loader
             [
                 'ajax' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('photo_likes'),
+                'container' => '.site-main',
             ]
         );
     }

@@ -6,7 +6,61 @@ class PhotoLikes {
         this.pendingReload = false;
 
         this.bindEvents();
+
+        this.observe();
+
         this.loadState();
+
+    }
+
+    observe() {
+
+        const root = document.querySelector(PhotoLikesData.container) || document.body;
+
+        this.observer = new MutationObserver((mutations) => {
+
+            let reload = false;
+
+            for (const mutation of mutations) {
+
+                if (mutation.type !== 'childList') {
+                    continue;
+                }
+
+                for (const node of mutation.addedNodes) {
+
+                    if (node.nodeType !== 1) {
+                        continue;
+                    }
+
+                    if (
+                        node.matches?.('.photo-like') ||
+                        node.querySelector?.('.photo-like')
+                    ) {
+                        reload = true;
+                        break;
+                    }
+
+                }
+
+                if (reload) {
+                    break;
+                }
+
+            }
+
+            if (reload) {
+                this.loadState();
+            }
+
+        });
+
+        this.observer.observe(root, {
+
+            childList: true,
+            subtree: true
+
+        });
 
     }
 
