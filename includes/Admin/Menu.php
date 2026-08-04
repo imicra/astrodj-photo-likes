@@ -3,6 +3,7 @@
 namespace PhotoLikes\Admin;
 
 use PhotoLikes\Admin\LikesPage;
+use PhotoLikes\Repository;
 
 defined('ABSPATH') || exit;
 
@@ -20,7 +21,7 @@ class Menu
     {
         add_menu_page(
             __('Лайки', 'photo-likes'),
-            __('Лайки', 'photo-likes'),
+            $this->menuTitle(),
             'manage_options',
             'photo-likes',
             [$this, 'page'],
@@ -36,5 +37,26 @@ class Menu
     {
         $page = new LikesPage();
         $page->render();
+    }
+
+    /**
+     * Заголовок меню
+     */
+    private function menuTitle(): string
+    {
+        $count = Repository::countNewLikes();
+
+        $title = __('Лайки', 'photo-likes');
+
+        if ($count > 0) {
+
+            $title .= sprintf(
+                ' <span class="awaiting-mod">%s</span>',
+                number_format_i18n($count)
+            );
+
+        }
+
+        return $title;
     }
 }

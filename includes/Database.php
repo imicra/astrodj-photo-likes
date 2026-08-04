@@ -364,4 +364,23 @@ class Database
         return $wpdb->get_results($sql);
     }
 
+    /**
+     * Количество новых лайков
+     */
+    public static function countNewLikes(string $since): int
+    {
+        global $wpdb;
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "
+                SELECT COUNT(DISTINCT photo_id)
+                FROM " . self::table() . "
+                WHERE created_at > %s
+                ",
+                $since
+            )
+        );
+    }
+
 }

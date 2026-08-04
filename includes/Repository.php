@@ -200,4 +200,22 @@ class Repository
         return Database::countStatistics();
     }
 
+    /**
+     * Количество фотографий с новыми лайками
+     */
+    public static function countNewLikes(): int
+    {
+        $since = get_user_meta(
+            get_current_user_id(),
+            'photo_likes_last_seen',
+            true
+        );
+
+        if (empty($since)) {
+            $since = '1970-01-01 00:00:00';
+        }
+
+        return Database::countNewLikes($since);
+    }
+
 }

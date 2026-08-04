@@ -13,6 +13,12 @@ class LikesPage
      */
     public function render(): void
     {
+        update_user_meta(
+            get_current_user_id(),
+            'photo_likes_last_seen',
+            current_time('mysql', true)
+        );
+
         $table = new LikesTable();
 
         $table->prepare_items();
